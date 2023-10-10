@@ -18,8 +18,20 @@ contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
      * @dev Returns the name of the token.
      */
 
+    function _ds() internal pure returns (LibDiamond.DiamondStorage storage) {
+        return LibDiamond.diamondStorage();
+    }
+
     function name() public view virtual returns (string memory) {
-        return _name;
+        return _ds()._name;
+    }
+
+    function mint() public virtual {
+        require(
+            _ds().contractOwner == msg.sender,
+            "Only contract owner can mint,"
+        );
+        _mint(_ds().contractOwner, 1_000_000_000e18);
     }
 
     /**
@@ -27,8 +39,7 @@ contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
      * name.
      */
     function symbol() public view virtual returns (string memory) {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.DiamondStorage();
-        return ds._symbol;
+        return _ds()._symbol;
     }
 
     /**
@@ -52,16 +63,14 @@ contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
      * @dev See {IERC20-totalSupply}.
      */
     function totalSupply() public view virtual returns (uint256) {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.DiamondStorage();
-        return ds._totalSupply;
+        return _ds()._totalSupply;
     }
 
     /**
      * @dev See {IERC20-balanceOf}.
      */
     function balanceOf(address account) public view virtual returns (uint256) {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.DiamondStorage();
-        return ds._balances[account];
+        return _ds()._balances[account];
     }
 
     /**
@@ -85,8 +94,7 @@ contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
         address owner,
         address spender
     ) public view virtual returns (uint256) {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.DiamondStorage();
-        return ds._allowances[owner][spender];
+        return _ds()._allowances[owner][spender];
     }
 
     /**
@@ -163,30 +171,29 @@ contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
      * Emits a {Transfer} event.
      */
     function _update(address from, address to, uint256 value) internal virtual {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.DiamondStorage();
         if (from == address(0)) {
             // Overflow check required: The rest of the code assumes that totalSupply never overflows
-            ds._totalSupply += value;
+            _ds()._totalSupply += value;
         } else {
-            uint256 fromBalance = ds._balances[from];
+            uint256 fromBalance = _ds()._balances[from];
             if (fromBalance < value) {
                 revert ERC20InsufficientBalance(from, fromBalance, value);
             }
             unchecked {
                 // Overflow not possible: value <= fromBalance <= totalSupply.
-                ds._balances[from] = fromBalance - value;
+                _ds()._balances[from] = fromBalance - value;
             }
         }
 
         if (to == address(0)) {
             unchecked {
                 // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
-                ds._totalSupply -= value;
+                _ds()._totalSupply -= value;
             }
         } else {
             unchecked {
                 // Overflow not possible: balance + value is at most totalSupply, which we know fits into a uint256.
-                ds._balances[to] += value;
+                _ds()._balances[to] += value;
             }
         }
 
@@ -265,14 +272,13 @@ contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
         uint256 value,
         bool emitEvent
     ) internal virtual {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.DiamondStorage();
         if (owner == address(0)) {
             revert ERC20InvalidApprover(address(0));
         }
         if (spender == address(0)) {
             revert ERC20InvalidSpender(address(0));
         }
-        ds._allowances[owner][spender] = value;
+        _ds()._allowances[owner][spender] = value;
         if (emitEvent) {
             emit Approval(owner, spender, value);
         }
