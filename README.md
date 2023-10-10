@@ -1,39 +1,66 @@
-[![Mentioned in Awesome Foundry](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/crisgarner/awesome-foundry)
-# Foundry + Hardhat Diamonds
+## Foundry
 
-This is a mimimal template for [Diamonds](https://github.com/ethereum/EIPs/issues/2535) which allows facet selectors to be generated on the go in solidity tests!
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-## Installation
+Foundry consists of:
 
-- Clone this repo
-- Install dependencies
+-   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+-   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+-   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+-   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-```bash
-$ yarn && forge update
+## Documentation
+
+https://book.getfoundry.sh/
+
+## Usage
+
+### Build
+
+```shell
+$ forge build
 ```
 
-### Compile
+### Test
 
-```bash
-$ npx hardhat compile
+```shell
+$ forge test
 ```
 
-## Deployment
+### Format
 
-### Hardhat
-
-```bash
-$ npx hardhat run scripts/deploy.js
+```shell
+$ forge fmt
 ```
 
-### Foundry
+### Gas Snapshots
 
-```bash
-$ forge t
+```shell
+$ forge snapshot
 ```
 
-`Note`: A lot of improvements are still needed so contributions are welcome!!
+### Anvil
 
-Bonus: The [DiamondLoupefacet](contracts/facets/DiamondLoupeFacet.sol) uses an updated [LibDiamond](contracts/libraries//LibDiamond.sol) which utilises solidity custom errors to make debugging easier especially when upgrading diamonds. Take it for a spin!!
+```shell
+$ anvil
+```
 
-Need some more clarity? message me [on twitter](https://twitter.com/Timidan_x), Or join the [EIP-2535 Diamonds Discord server](https://discord.gg/kQewPw2)
+### Deploy
+
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
+
+### Cast
+
+```shell
+$ cast <subcommand>
+```
+
+### Help
+
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```
