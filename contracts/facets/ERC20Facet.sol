@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-
+import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
 
 contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
@@ -160,29 +163,30 @@ contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
      * Emits a {Transfer} event.
      */
     function _update(address from, address to, uint256 value) internal virtual {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.DiamondStorage();
         if (from == address(0)) {
             // Overflow check required: The rest of the code assumes that totalSupply never overflows
-            _totalSupply += value;
+            ds._totalSupply += value;
         } else {
-            uint256 fromBalance = _balances[from];
+            uint256 fromBalance = ds._balances[from];
             if (fromBalance < value) {
                 revert ERC20InsufficientBalance(from, fromBalance, value);
             }
             unchecked {
                 // Overflow not possible: value <= fromBalance <= totalSupply.
-                _balances[from] = fromBalance - value;
+                ds._balances[from] = fromBalance - value;
             }
         }
 
         if (to == address(0)) {
             unchecked {
                 // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
-                _totalSupply -= value;
+                ds._totalSupply -= value;
             }
         } else {
             unchecked {
                 // Overflow not possible: balance + value is at most totalSupply, which we know fits into a uint256.
-                _balances[to] += value;
+                ds._balances[to] += value;
             }
         }
 
@@ -261,13 +265,14 @@ contract ERC20Facet is Context, IERC20, IERC20Metadata, IERC20Errors {
         uint256 value,
         bool emitEvent
     ) internal virtual {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.DiamondStorage();
         if (owner == address(0)) {
             revert ERC20InvalidApprover(address(0));
         }
         if (spender == address(0)) {
             revert ERC20InvalidSpender(address(0));
         }
-        _allowances[owner][spender] = value;
+        ds._allowances[owner][spender] = value;
         if (emitEvent) {
             emit Approval(owner, spender, value);
         }
